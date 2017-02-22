@@ -92,7 +92,7 @@ toVector :: forall a . _ => List a -> Vector a
 toVector l = (fromList l)
 
 num :: _ => Int
-num = 1000000
+num = 1000
 
 d :: _ => Int
 d = 3
@@ -101,10 +101,10 @@ kinit :: _ => Int
 kinit = ((d) * ((d) + 1))
 
 workers :: _ => Int
-workers = (numCapabilities)
+workers = 2
 
 packSize :: _ => Int
-packSize = 1000
+packSize = 10
 
 isElem :: forall a . _ => a -> List a -> Bool
 isElem l ls
@@ -693,7 +693,7 @@ instance IWorker' Worker where
                                     I'.when when'
                                       (do 
                                           _ <- I'.lift
-                                                 ((\ this'' ->
+                                                 (I'.join ((\ this'' ->
                                                             I'.pure requests_i <*>
                                                             (I'.pure reverse <*> I'.liftIO (I'.readIORef tmp))
                                                             <*>
@@ -711,7 +711,7 @@ instance IWorker' Worker where
                                                                     (workerId'Worker this''))
                                                                <*> I'.pure 1)
                                                             <*> I'.liftIO (I'.readIORef w))
-                                                    =<< I'.liftIO (I'.readIORef this'))
+                                                    =<< I'.liftIO (I'.readIORef this'))) :: ABS' ()
 
                                           -- _ <- I'.liftIO
                                           --        ((\ this'' ->
@@ -802,7 +802,7 @@ instance IWorker' Worker where
                               I'.when when'
                                 (do 
                                     _ <- I'.lift
-                                                 ((\ this'' ->
+                                                 (I'.join ((\ this'' ->
                                                             I'.pure requests_i <*>
                                                             (I'.pure reverse <*> I'.liftIO (I'.readIORef tmp))
                                                             <*>
@@ -820,7 +820,7 @@ instance IWorker' Worker where
                                                                     (workerId'Worker this''))
                                                                <*> I'.pure 1)
                                                             <*> I'.liftIO (I'.readIORef w))
-                                                    =<< I'.liftIO (I'.readIORef this'))
+                                                    =<< I'.liftIO (I'.readIORef this'))) :: ABS' ()
 
 
                                     -- _ <- I'.liftIO
@@ -881,7 +881,7 @@ instance IWorker' Worker where
                         (\ v' -> this''{srcs'Worker = v'}) <$!>
                           (I'.join
                              ((I'.pure unsafeNew <*>
-                                 ((+) <$!> (I'.pure workers) <*> I'.pure 1)))))
+                                 ((+) <$!> (I'.pure workers) <*> I'.pure 0)))))
                        =<< I'.readIORef this'))
                I'.liftIO
                  (I'.writeIORef this' =<<
@@ -889,7 +889,7 @@ instance IWorker' Worker where
                         (\ v' -> this''{tgts'Worker = v'}) <$!>
                           (I'.join
                              ((I'.pure unsafeNew <*>
-                                 ((+) <$!> (I'.pure workers) <*> I'.pure 1)))))
+                                 ((+) <$!> (I'.pure workers) <*> I'.pure 0)))))
                        =<< I'.readIORef this'))
                c :: IORef' (Fut Int) <- I'.liftIO (I'.newIORef nullFuture')
                index :: IORef' Int <- I'.liftIO (I'.newIORef 1)
@@ -1025,12 +1025,12 @@ instance IWorker' Worker where
                                                                        (I'.fromIntegral aIn)))
                                                                  =<< I'.readIORef this')
 
-                                    _ <- I'.lift (
+                                    _ <- I'.lift (I'.join (
                                                    I'.pure delegates__i <*>
                                                    (I'.pure reverse <*> I'.liftIO (I'.readIORef srcd))
                                                    <*> (I'.pure reverse <*> I'.liftIO (I'.readIORef tgtd))
                                                    <*> I'.liftIO (I'.readIORef iw)
-                                                  )
+                                                  )) :: ABS' ()
 
                                     -- _ <- I'.liftIO
                                     --        ((\ (IWorker obj') ->
@@ -1072,12 +1072,12 @@ instance IWorker' Worker where
                                                      (nth (ws2'Worker this'')
                                                         (I'.fromIntegral aIn)))
                                                   =<< I'.readIORef this')
-                     _ <- I'.lift (
+                     _ <- I'.lift ( I'.join (
                                                    I'.pure delegates__i <*>
                                                    (I'.pure reverse <*> I'.liftIO (I'.readIORef srcd))
                                                    <*> (I'.pure reverse <*> I'.liftIO (I'.readIORef tgtd))
                                                    <*> I'.liftIO (I'.readIORef iw)
-                                                  )
+                                                  )) :: ABS' ()
 
                      -- _ <- I'.liftIO
                      --        ((\ (IWorker obj') ->

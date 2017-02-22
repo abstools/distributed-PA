@@ -93,8 +93,8 @@ class Worker(Int workerId, Int size) implements IWorker {
 //	   initArrr = Cons(0, Nil);
 	  this.arr = unsafeNew(size + 1); 
 	  this.initArr = unsafeNew(kinit()+1); 
-	  this.srcs = unsafeNew(workers()+1); 
-	  this.tgts = unsafeNew(workers()+1); 
+	  this.srcs = unsafeNew(workers()); 
+	  this.tgts = unsafeNew(workers()); 
 
      // START INIT clique of the graph
 
