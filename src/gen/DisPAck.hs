@@ -73,6 +73,8 @@ import System.IO.Unsafe (unsafePerformIO)
 import Prelude (quot)
 import Prelude (rem)
 
+import System.IO (putStrLn)
+
 default (Int, Rat)
 
 {-# INLINE div #-}
@@ -1426,12 +1428,14 @@ back' obj@(Obj' _ thisCog@(Cog thisSleepTable thisMailBox)) = do
       [
         match ((\ 
                 -- request
-                (caller :: ProcessId,param :: Int,rfut :: RFut) -> 
+                (caller :: ProcessId,param :: Int,rfut :: RFut) -> do
+                  I'.liftIO (putStrLn "request received")
                   return (request param obj >>= (\ res -> I'.lift (caller `send` (res,rfut)) >> back' obj))
                 ))
       , match ((\ 
                 -- response
-                (res,rfut) -> 
+                (res,rfut) -> do
+                  I'.liftIO (putStrLn "future resolved")
                   case IM.lookup rfut ft of
                     Just (_,k) -> do
                       I'.liftIO $ I'.writeIORef thisSleepTable (bt,IM.insert rfut (res,I'.undefined) ft, ct)
@@ -1442,12 +1446,14 @@ back' obj@(Obj' _ thisCog@(Cog thisSleepTable thisMailBox)) = do
               )) -- :: Either (Int,Int) (Int,Int) -> Process (ABS' ()))
       , match ((\ 
                 -- delegates_
-                (param1,param2) -> 
+                (param1,param2) -> do
+                   I'.liftIO (putStrLn "delegates_ received")
                    return (delegates_ param1 param2 obj >> back' obj)
               ))
       , match ((\ 
                 -- requests
-                (param1,param2,param3) -> 
+                (param1,param2,param3) -> do
+                   I'.liftIO (putStrLn "requests received")
                    return (requests param1 param2 param3 obj >> back' obj)
               ))
       , matchSTM (readTQueue thisMailBox) return
