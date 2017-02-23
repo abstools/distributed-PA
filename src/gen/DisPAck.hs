@@ -976,7 +976,8 @@ instance IWorker' Worker where
                               =<< I'.readIORef this'))
                I'.liftIO ((I'.fromIntegral <$!> I'.readIORef n))
         requests src tgt aIn this@(Obj' this' _)
-          = do srcd :: IORef' (List Int) <- I'.liftIO (I'.newIORef [])
+          = do I'.liftIO (println "inside requests call")
+               srcd :: IORef' (List Int) <- I'.liftIO (I'.newIORef [])
                src2 :: IORef' (List Int) <- I'.liftIO (I'.newIORef src)
                tgtd :: IORef' (List Int) <- I'.liftIO (I'.newIORef [])
                tgt2 :: IORef' (List Int) <- I'.liftIO (I'.newIORef tgt)
@@ -1065,6 +1066,7 @@ instance IWorker' Worker where
                        (I'.writeIORef tgtd =<<
                           ((:) <$!> (I'.fromIntegral <$!> I'.readIORef target) <*>
                              I'.readIORef tgtd)))
+               I'.liftIO (println "after while of requests")
                when' <- I'.liftIO
                           (((not) <$!> ((==) <$!> I'.readIORef srcd <*> I'.pure [])))
                I'.when when'
