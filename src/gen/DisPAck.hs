@@ -8,7 +8,7 @@ module DisPAck (main) where
 
 
 import ABS.Runtime.Base
-import ABS.Runtime.Prim (findWoken, while, get, (<$!>), null, nullFuture',awaitBool',(<..>))
+import ABS.Runtime.Prim (findWoken, while, get, (<$!>), null, nullFuture',(<..>))
 import ABS.Runtime.Extension.Promise
 import ABS.Runtime.Extension.IO
 import ABS.Runtime.CmdOpt
@@ -21,12 +21,13 @@ import Control.Distributed.Process.Closure
 import Control.Distributed.Process.Backend.SimpleLocalnet
 import ABS.Runtime.TQueue (TQueue (..), newTQueueIO, writeTQueue, readTQueue)
 import Control.Concurrent.STM (atomically, readTVar, readTVarIO, writeTVar)    
-import Control.Applicative ((<$))
+import Control.Applicative ((<$), (<$>))
 import Control.Concurrent (forkIO)
 import Prelude (($))
 import qualified Control.Monad.IO.Class as I' (liftIO)
 import Data.List ((++))
-import Control.Monad ((>>=),(>>))
+import Control.Monad ((>>=),(>>), unless)
+import Prelude (($))
 
 import ABS.StdLib
 --import ABS.Runtime
@@ -1471,6 +1472,18 @@ suspend obj@(Obj' _ (Cog _ thisMailBox)) = callCC
               I'.liftIO (atomically $ writeTQueue thisMailBox (k ()))
               back' obj)
 
+{-# INLINABLE awaitBool' #-}
+awaitBool' :: Obj' Worker -> (Worker -> Bool) -> ABS' ()
+awaitBool' obj@(Obj' thisContentsRef (Cog thisSleepTable thisMailBox)) testFun = do
+  thisContents <- I'.liftIO $ I'.readIORef thisContentsRef
+  unless (testFun thisContents) $
+    callCC (\ k -> do
+                       (bt, ft, ct) <- I'.liftIO $ I'.readIORef thisSleepTable
+                       I'.liftIO $ I'.writeIORef thisSleepTable $ 
+                                  ((testFun <$> I'.readIORef thisContentsRef, k ()) : bt,ft,ct) -- append failed await, maybe force like modifyIORef?
+                       back' obj 
+                       )
+
 -- remotable
 new_i :: (Int,Int,ProcessId) -- worker class params + master 
       -> Process ()
@@ -1632,5 +1645,3 @@ main
                        (I'.join ((I'.pure getTime <*> I'.pure Monotonic)))
                        <*> I'.readIORef t1)))
             I'.liftIO (println "END"))
-
-
