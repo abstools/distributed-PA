@@ -74,7 +74,7 @@ import System.IO.Unsafe (unsafePerformIO)
 import Prelude (quot)
 import Prelude (rem)
 
-import System.IO (putStrLn)
+--import System.IO (putStrLn)
 
 default (Int, Rat)
 
@@ -95,7 +95,7 @@ toVector :: forall a . _ => List a -> Vector a
 toVector l = (fromList l)
 
 num :: _ => Int
-num = 1000
+num = 1000000
 
 d :: _ => Int
 d = 3
@@ -107,7 +107,7 @@ workers :: _ => Int
 workers = 2
 
 packSize :: _ => Int
-packSize = 10
+packSize = 1000
 
 isElem :: forall a . _ => a -> List a -> Bool
 isElem l ls
@@ -977,7 +977,7 @@ instance IWorker' Worker where
                               =<< I'.readIORef this'))
                I'.liftIO ((I'.fromIntegral <$!> I'.readIORef n))
         requests src tgt aIn this@(Obj' this' _)
-          = do I'.liftIO (println "inside requests call")
+          = do --I'.liftIO (println "inside requests call")
                srcd :: IORef' (List Int) <- I'.liftIO (I'.newIORef [])
                src2 :: IORef' (List Int) <- I'.liftIO (I'.newIORef src)
                tgtd :: IORef' (List Int) <- I'.liftIO (I'.newIORef [])
@@ -1067,7 +1067,7 @@ instance IWorker' Worker where
                        (I'.writeIORef tgtd =<<
                           ((:) <$!> (I'.fromIntegral <$!> I'.readIORef target) <*>
                              I'.readIORef tgtd)))
-               I'.liftIO (println "after while of requests")
+               --I'.liftIO (println "after while of requests")
                when' <- I'.liftIO
                           (((not) <$!> ((==) <$!> I'.readIORef srcd <*> I'.pure [])))
                I'.when when'
@@ -1431,14 +1431,14 @@ back' obj@(Obj' _ thisCog@(Cog thisSleepTable thisMailBox)) = do
       [
         match ((\ 
                 -- request
-                (caller :: ProcessId,param :: Int,rfut :: RFut) -> do
-                  I'.liftIO (putStrLn "request received")
+                (caller :: ProcessId,param :: Int,rfut :: RFut) -> --do
+                  --I'.liftIO (putStrLn "request received")
                   return (request param obj >>= (\ res -> I'.lift (caller `send` (res,rfut)) >> back' obj))
                 ))
       , match ((\ 
                 -- response
-                (res,rfut) -> do
-                  I'.liftIO (putStrLn "future resolved")
+                (res,rfut) -> --do
+                  --I'.liftIO (putStrLn "future resolved")
                   case IM.lookup rfut ft of
                     Just (_,k) -> do
                       I'.liftIO $ I'.writeIORef thisSleepTable (bt,IM.insert rfut (res,I'.undefined) ft, ct)
@@ -1449,14 +1449,14 @@ back' obj@(Obj' _ thisCog@(Cog thisSleepTable thisMailBox)) = do
               )) -- :: Either (Int,Int) (Int,Int) -> Process (ABS' ()))
       , match ((\ 
                 -- delegates_
-                (param1,param2) -> do
-                   I'.liftIO (putStrLn "delegates_ received")
+                (param1,param2) -> --do
+                   --I'.liftIO (putStrLn "delegates_ received")
                    return (delegates_ param1 param2 obj >> back' obj)
               ))
       , match ((\ 
                 -- requests
-                (param1,param2,param3) -> do
-                   I'.liftIO (putStrLn "requests received")
+                (param1,param2,param3) -> --do
+                   --I'.liftIO (putStrLn "requests received")
                    return (requests param1 param2 param3 obj >> back' obj)
               ))
       , matchSTM (readTQueue thisMailBox) return
